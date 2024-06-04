@@ -29,8 +29,8 @@ async function run() {
     });
 
     // All Collection
-    const userCollection = client.db("EliteProperty").collection("users");
-    const propertyCollection = client
+    const usersCollection = client.db("EliteProperty").collection("users");
+    const propertiesCollection = client
       .db("EliteProperty")
       .collection("properties");
 
@@ -63,17 +63,32 @@ async function run() {
       const user = req.body;
       console.log(user);
       const query = { email: user.email };
-      const existingUser = await userCollection.findOne(query);
+      const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
         return res.send({ message: "user already exists", insertedId: null });
       }
-      const result = await userCollection.insertOne(user);
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // Get User role
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await usersCollection.findOne({ email });
       res.send(result);
     });
 
     // Get all property
     app.get("/property", async (req, res) => {
-      const result = await propertyCollection.find().toArray();
+      const result = await propertiesCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Get a single Property
+    app.get("/property/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertiesCollection.findOne(query);
       res.send(result);
     });
 
