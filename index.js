@@ -159,6 +159,30 @@ async function run() {
       res.send(result);
     });
 
+    //ADMIN
+    //get all Property data
+    app.get("/allProperty", async (req, res) => {
+      const result = await propertiesCollection.find().toArray();
+      res.send(result);
+    });
+
+    //Update status to verified
+    app.patch("/property/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(req.body);
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          status: req.body?.status,
+        },
+      };
+      const updatedResult = await propertiesCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      res.send(updatedResult);
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
