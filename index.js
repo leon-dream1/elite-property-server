@@ -81,13 +81,13 @@ async function run() {
       res.send(result);
     });
 
-    // Get all property
+    // Get all property for All
     app.get("/property", async (req, res) => {
       const result = await propertiesCollection.find().toArray();
       res.send(result);
     });
 
-    // Get a single Property
+    // Get a single Property for All
     app.get("/property/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -95,14 +95,8 @@ async function run() {
       res.send(result);
     });
 
-    //Post a Property
-    app.post("/property", async (req, res) => {
-      const property = req.body;
-      const result = await propertiesCollection.insertOne(property);
-      res.send(result);
-    });
-
-    // Add to wishlist
+    //USER
+    // Add to wishlist By user
     app.post("/property/wishlist", async (req, res) => {
       const property = req.body;
       const existWishProperty = await wishListCollection.findOne({
@@ -115,6 +109,53 @@ async function run() {
         });
       }
       const result = await wishListCollection.insertOne(property);
+      res.send(result);
+    });
+
+    //AGENT
+    //Post a Property by Agent
+    app.post("/property", async (req, res) => {
+      const property = req.body;
+      const result = await propertiesCollection.insertOne(property);
+      res.send(result);
+    });
+
+    // Get all added property bt agent
+    app.get("/myAddedProperty/:email", async (req, res) => {
+      const result = await propertiesCollection
+        .find({ email: req.body.email })
+        .toArray();
+      res.send(result);
+    });
+
+    // Update a added property By Agent
+    app.put("/property/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(req.body);
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          agent_name: req.body?.agent_name,
+          agent_email: req.body?.agent_email,
+          property_title: req.body?.property_title,
+          location: req.body?.location,
+          price_range: req.body?.price_range,
+          agent_image: req.body?.agent_image,
+          status: req.body?.status,
+        },
+      };
+      const updatedResult = await propertiesCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      res.send(updatedResult);
+    });
+
+    // Delete by agent
+    app.delete("/property/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertiesCollection.deleteOne(query);
       res.send(result);
     });
 
