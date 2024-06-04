@@ -33,6 +33,9 @@ async function run() {
     const propertiesCollection = client
       .db("EliteProperty")
       .collection("properties");
+    const wishListCollection = client
+      .db("EliteProperty")
+      .collection("wishList");
 
     //Verify Token
     const verifyToken = (req, res, next) => {
@@ -89,6 +92,29 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await propertiesCollection.findOne(query);
+      res.send(result);
+    });
+
+    //Post a Property
+    app.post("/property", async (req, res) => {
+      const property = req.body;
+      const result = await propertiesCollection.insertOne(property);
+      res.send(result);
+    });
+
+    // Add to wishlist
+    app.post("/property/wishlist", async (req, res) => {
+      const property = req.body;
+      const existWishProperty = await wishListCollection.findOne({
+        email: req.body?.email,
+      });
+      if (existWishProperty) {
+        return res.send({
+          message: "This Property already exists in wishlist!!!!!",
+          insertedId: null,
+        });
+      }
+      const result = await wishListCollection.insertOne(property);
       res.send(result);
     });
 
