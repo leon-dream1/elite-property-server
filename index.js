@@ -83,7 +83,7 @@ async function run() {
 
     // Get all property for All
     app.get("/property", async (req, res) => {
-      const result = await propertiesCollection.find().toArray();
+      const result = await propertiesCollection.find({status : 'verified'}).toArray();
       res.send(result);
     });
 
