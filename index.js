@@ -98,6 +98,7 @@ async function run() {
     });
 
     //USER
+
     // Add to wishlist By user
     app.post("/property/wishlist", async (req, res) => {
       const property = req.body;
@@ -114,6 +115,22 @@ async function run() {
       res.send(result);
     });
 
+    // Get all added wishlist bu user
+    app.get("/property/wishList/:email", async (req, res) => {
+      const result = await wishListCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
+     // Delete wishlist by user
+     app.delete("/property/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    });
+
     //AGENT
 
     //Post a Property by Agent
@@ -123,10 +140,11 @@ async function run() {
       res.send(result);
     });
 
-    // Get all added property bt agent
+    // Get all added property by agent
     app.get("/myAddedProperty/:email", async (req, res) => {
+      console.log(req.params.email);
       const result = await propertiesCollection
-        .find({ email: req.body.email })
+        .find({ agent_email: req.params.email })
         .toArray();
       res.send(result);
     });
