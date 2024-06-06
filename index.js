@@ -36,6 +36,7 @@ async function run() {
     const wishListCollection = client
       .db("EliteProperty")
       .collection("wishList");
+    const offersCollection = client.db("EliteProperty").collection("offers");
 
     //Verify Token
     const verifyToken = (req, res, next) => {
@@ -123,8 +124,33 @@ async function run() {
       res.send(result);
     });
 
-     // Delete wishlist by user
-     app.delete("/property/wishList/:id", async (req, res) => {
+    // get a single wishlist
+    app.get("/offerProperty/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.findOne(query);
+      res.send(result);
+    });
+
+    // offer post by user
+    app.post("/propertyOffer", async (req, res) => {
+      const offer = req.body;
+      const existWishProperty = await offersCollection.findOne({
+        buyer_email: req.body?.buyer_email,
+      });
+      if (existWishProperty) {
+        return res.send({
+          message:
+            "You already give a offer for this property!!! Wait for agent approval!!!",
+          insertedId: null,
+        });
+      }
+      const result = await offersCollection.insertOne(offer);
+      res.send(result);
+    });
+
+    // Delete wishlist by user
+    app.delete("/property/wishList/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await wishListCollection.deleteOne(query);
