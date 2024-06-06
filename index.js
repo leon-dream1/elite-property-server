@@ -64,7 +64,7 @@ async function run() {
     //save login user
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log(user);
+      console.log("info", user);
       const query = { email: user.email };
       const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
@@ -83,7 +83,9 @@ async function run() {
 
     // Get all property for All
     app.get("/property", async (req, res) => {
-      const result = await propertiesCollection.find({status : 'verified'}).toArray();
+      const result = await propertiesCollection
+        .find({ status: "verified" })
+        .toArray();
       res.send(result);
     });
 
@@ -113,6 +115,7 @@ async function run() {
     });
 
     //AGENT
+
     //Post a Property by Agent
     app.post("/property", async (req, res) => {
       const property = req.body;
@@ -160,6 +163,7 @@ async function run() {
     });
 
     //ADMIN
+
     //get all Property data
     app.get("/allProperty", async (req, res) => {
       const result = await propertiesCollection.find().toArray();
@@ -181,6 +185,38 @@ async function run() {
         updateDocument
       );
       res.send(updatedResult);
+    });
+
+    //get All user data
+    app.get("/allUser", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Update user role
+    app.patch("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      // console.log(req.body);
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          role: req.body.role,
+        },
+      };
+      const updatedResult = await usersCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      res.send(updatedResult);
+    });
+
+    // Delete a user by admin
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
     });
 
     console.log(
