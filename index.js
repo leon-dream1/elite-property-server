@@ -149,6 +149,13 @@ async function run() {
       res.send(result);
     });
 
+    // get all property that is offer by user
+    app.get("/propertyOffer/:email", async (req, res) => {
+      const query = { buyer_email: req?.params?.email };
+      const result = await offersCollection.find(query).toArray();
+      res.send(result);
+    });
+
     // Delete wishlist by user
     app.delete("/property/wishList/:id", async (req, res) => {
       const id = req.params.id;
