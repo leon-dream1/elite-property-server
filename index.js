@@ -213,6 +213,12 @@ async function run() {
       res.send(result);
     });
 
+    //  Requested Property
+    app.get("/requestedProperty", async (req, res) => {
+      const result = await offersCollection.find().toArray();
+      res.send(result);
+    });
+
     //ADMIN
 
     //get all Property data
@@ -268,6 +274,22 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(query);
       res.send(result);
+    });
+
+    // Update Request Property status
+    app.patch("/requestProperty/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          status: req.body?.status,
+        },
+      };
+      const updatedResult = await offersCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      res.send(updatedResult);
     });
 
     console.log(
