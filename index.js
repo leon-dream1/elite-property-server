@@ -82,7 +82,7 @@ async function run() {
       res.send(result);
     });
 
-    // Get all property for All
+    // Get all property for All user
     app.get("/property", async (req, res) => {
       const result = await propertiesCollection
         .find({ status: "verified" })
@@ -103,8 +103,9 @@ async function run() {
     // Add to wishlist By user
     app.post("/property/wishlist", async (req, res) => {
       const property = req.body;
+      console.log(property);
       const existWishProperty = await wishListCollection.findOne({
-        email: req.body?.email,
+        wish_property_id: req.body?.wish_property_id,
       });
       if (existWishProperty) {
         return res.send({
@@ -136,7 +137,7 @@ async function run() {
     app.post("/propertyOffer", async (req, res) => {
       const offer = req.body;
       const existWishProperty = await offersCollection.findOne({
-        buyer_email: req.body?.buyer_email,
+        offer_property_id: req.body?.offer_property_id,
       });
       if (existWishProperty) {
         return res.send({
