@@ -3,6 +3,7 @@ const cors = require("cors");
 var jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -37,6 +38,9 @@ async function run() {
       .db("EliteProperty")
       .collection("wishList");
     const offersCollection = client.db("EliteProperty").collection("offers");
+    const soldPropertyCollection = client
+      .db("EliteProperty")
+      .collection("soldProperty");
 
     //Verify Token
     const verifyToken = (req, res, next) => {
@@ -157,10 +161,72 @@ async function run() {
       res.send(result);
     });
 
+    // get a property that is payable or accepted by agent
+    app.get("/propertyOffer/payable/:id", async (req, res) => {
+      const query = { _id: new ObjectId(req?.params?.id) };
+      const result = await offersCollection.findOne(query);
+      res.send(result);
+    });
+
     // Delete wishlist by user
     app.delete("/property/wishList/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // create-payment-intent for user
+    app.post("/create-payment-intent", async (req, res) => {
+      const price = req.body.price;
+      console.log(price);
+      const priceInCent = parseFloat(price) * 100;
+      if (!price || priceInCent < 1) res.send("price nai");
+
+      // generate clientSecret
+      const { client_secret } = await stripe.paymentIntents.create({
+        amount: priceInCent,
+        currency: "usd",
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      // send client secret as response
+      res.send({ clientSecret: client_secret });
+    });
+
+    //save bought property
+    app.post("/soldProperty", async (req, res) => {
+      const soldPropertyData = req.body;
+      const result = await soldPropertyCollection.insertOne(soldPropertyData);
+      res.send(result);
+    });
+
+    // update status accepted to bought
+
+    app.patch("/soldProperty/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(req.body);
+      const filter = { _id: new ObjectId(id) };
+      const updateDocument = {
+        $set: {
+          status: req.body?.status,
+          transactionId: req.body?.transactionId,
+        },
+      };
+      const updatedResult = await offersCollection.updateOne(
+        filter,
+        updateDocument
+      );
+      console.log(updatedResult);
+      res.send(updatedResult);
+    });
+
+    // remove  this bought property from wishlist
+    app.delete("/soldProperty/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { wish_property_id: id };
       const result = await wishListCollection.deleteOne(query);
       res.send(result);
     });
