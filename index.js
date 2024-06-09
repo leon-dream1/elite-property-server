@@ -89,9 +89,30 @@ async function run() {
 
     // Get all property for All user
     app.get("/property", async (req, res) => {
+      const location = req.query.location;
+      const sortBy = req.query.sortBy;
+      let query = { status: "verified" };
+
+      console.log(sortBy);
+
+      if (location) {
+        query.location = { $regex: location, $options: "i" };
+      }
+
+      const sortQuery = {}
+      if (sortBy === "asc") {
+        sortQuery["price_range.min"] = 1;
+      }
+      if (sortBy === "desc") {
+        sortQuery["price_range.min"] = -1;
+      }
+
       const result = await propertiesCollection
-        .find({ status: "verified" })
+        .find(query)
+        .sort(sortQuery)
         .toArray();
+      console.log(result);
+
       res.send(result);
     });
 
