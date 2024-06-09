@@ -129,6 +129,16 @@ async function run() {
       res.send(result);
     });
 
+    // get All  review
+    app.get("/allReviews", async (req, res) => {
+      const result = await reviewsCollection
+        .find()
+        .sort({ review_time: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    // get property based review
     app.get("/reviews/:id", async (req, res) => {
       const result = await reviewsCollection
         .find({ property_id: req.params.id })
@@ -136,7 +146,22 @@ async function run() {
       res.send(result);
     });
 
-    // Get all added wishlist bu user
+    // get review using email
+    app.get("/myReview/:email", async (req, res) => {
+      const result = await reviewsCollection
+        .find({ reviewer_email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
+    app.delete("/myReview/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await reviewsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Get all added wishlist by user
     app.get("/property/wishList/:email", async (req, res) => {
       const result = await wishListCollection
         .find({ email: req.params.email })
@@ -393,6 +418,12 @@ async function run() {
         updateDocument
       );
       res.send(updatedResult);
+    });
+
+    // get all review data
+    app.get("/allReview", async (req, res) => {
+      const result = await reviewsCollection.find().toArray();
+      res.send(result);
     });
 
     console.log(
