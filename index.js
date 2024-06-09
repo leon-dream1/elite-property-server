@@ -200,7 +200,20 @@ async function run() {
     app.post("/soldProperty", async (req, res) => {
       const soldPropertyData = req.body;
       const result = await soldPropertyCollection.insertOne(soldPropertyData);
-      res.send(result);
+
+      if (result?.insertedId) {
+        const filter = { _id: new ObjectId(req.body?.offer_property_id) };
+        const updateDocument = {
+          $set: {
+            status: "sold",
+          },
+        };
+        const updatedResult = await propertiesCollection.updateOne(
+          filter,
+          updateDocument
+        );
+        res.send(updatedResult);
+      }
     });
 
     // update status accepted to bought
@@ -283,6 +296,14 @@ async function run() {
     //  Requested Property
     app.get("/requestedProperty", async (req, res) => {
       const result = await offersCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Sold properties
+    app.get("/mySoldProperty/:email", async (req, res) => {
+      const result = await soldPropertyCollection
+        .find({ agent_email: req.params?.email })
+        .toArray();
       res.send(result);
     });
 
