@@ -41,6 +41,7 @@ async function run() {
     const soldPropertyCollection = client
       .db("EliteProperty")
       .collection("soldProperty");
+    const reviewsCollection = client.db("EliteProperty").collection("reviews");
 
     //Verify Token
     const verifyToken = (req, res, next) => {
@@ -118,6 +119,20 @@ async function run() {
         });
       }
       const result = await wishListCollection.insertOne(property);
+      res.send(result);
+    });
+
+    // add user review to db
+    app.post("/review", async (req, res) => {
+      const review = req?.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+
+    app.get("/reviews/:id", async (req, res) => {
+      const result = await reviewsCollection
+        .find({ property_id: req.params.id })
+        .toArray();
       res.send(result);
     });
 
