@@ -48,7 +48,6 @@ async function run() {
 
     //Verify Token
     const verifyToken = (req, res, next) => {
-      console.log("token", req.headers);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "unauthorized access" });
       }
@@ -57,7 +56,6 @@ async function run() {
         if (err) {
           return res.status(401).send({ message: "unauthorized access" });
         }
-        console.log(decoded);
         req.decoded = decoded;
         next();
       });
@@ -68,7 +66,6 @@ async function run() {
       const email = req.decoded?.email;
       const query = { email: email };
       const user = await usersCollection.findOne(query);
-      console.log("role", user?.role);
       const isAgent = user?.role === "agent";
       if (!isAgent) {
         return res.status(403).send({ message: "forbidden access" });
@@ -81,7 +78,6 @@ async function run() {
       const email = req.decoded.email;
       const query = { email: email };
       const user = await usersCollection.findOne(query);
-      console.log(user);
       const isAdmin = user?.role === "admin";
       if (!isAdmin) {
         return res.status(403).send({ message: "forbidden access" });
@@ -101,7 +97,6 @@ async function run() {
     //save login user
     app.post("/users", async (req, res) => {
       const user = req.body;
-      console.log("info", user);
       const query = { email: user.email };
       const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
@@ -121,14 +116,12 @@ async function run() {
     // Get all property for All user
     app.get("/property", verifyToken, async (req, res) => {
       const location = req.query.location;
-      console.log(location);
       const sortBy = req.query.sortBy;
       let query = { status: "verified" };
 
       if (location && location !== "null") {
         query.location = { $regex: location, $options: "i" };
       }
-      console.log(query);
 
       const sortQuery = {};
       if (sortBy === "asc") {
@@ -142,7 +135,6 @@ async function run() {
         .find(query)
         .sort(sortQuery)
         .toArray();
-      console.log(result);
 
       res.send(result);
     });
@@ -160,7 +152,6 @@ async function run() {
     // Add to wishlist By user
     app.post("/property/wishlist", verifyToken, async (req, res) => {
       const property = req.body;
-      console.log(property);
       const existWishProperty = await wishListCollection.findOne({
         wish_property_id: req.body?.wish_property_id,
       });
@@ -271,7 +262,6 @@ async function run() {
     // create-payment-intent for user
     app.post("/create-payment-intent", verifyToken, async (req, res) => {
       const price = req.body.price;
-      console.log(price);
       const priceInCent = parseFloat(price) * 100;
       if (!price || priceInCent < 1) res.send("price nai");
 
@@ -312,7 +302,6 @@ async function run() {
 
     app.patch("/soldProperty/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
-      console.log(req.body);
       const filter = { _id: new ObjectId(id) };
       const updateDocument = {
         $set: {
@@ -324,7 +313,6 @@ async function run() {
         filter,
         updateDocument
       );
-      console.log(updatedResult);
       res.send(updatedResult);
     });
 
@@ -351,7 +339,6 @@ async function run() {
       verifyToken,
       verifyAgent,
       async (req, res) => {
-        console.log(req.params.email);
         const result = await propertiesCollection
           .find({ agent_email: req.params.email })
           .toArray();
@@ -362,7 +349,6 @@ async function run() {
     // Update a added property By Agent
     app.put("/property/:id", verifyToken, verifyAgent, async (req, res) => {
       const id = req.params.id;
-      console.log(req.body);
       const filter = { _id: new ObjectId(id) };
       const updateDocument = {
         $set: {
@@ -416,6 +402,26 @@ async function run() {
       }
     );
 
+    // total sell amount
+    app.get(
+      "/totalAmount/:email",
+      verifyToken,
+      verifyAgent,
+      async (req, res) => {
+        const result = await soldPropertyCollection
+          .aggregate([
+            {
+              $group: {
+                _id: null,
+                totalPrice: { $sum: { $toInt: "$offered_price" } },
+              },
+            },
+          ])
+          .toArray();
+        res.send({ price: result[0].totalPrice });
+      }
+    );
+
     //ADMIN
 
     //get all Property data
@@ -465,7 +471,6 @@ async function run() {
     //Update status to verified
     app.patch("/property/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
-      console.log(req.body);
       const filter = { _id: new ObjectId(id) };
       const updateDocument = {
         $set: {
@@ -488,8 +493,6 @@ async function run() {
     // Update user role
     app.patch("/user/:id", verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
-      // console.log(req.body);
       const filter = { _id: new ObjectId(id) };
       const updateDocument = {
         $set: {
@@ -510,7 +513,6 @@ async function run() {
       verifyAdmin,
       async (req, res) => {
         const email = req.params.email;
-        console.log(email);
         const filter = { email: email };
 
         const updateDocument = {
