@@ -550,7 +550,7 @@ async function run() {
     app.patch(
       "/requestProperty/:id",
       verifyToken,
-      verifyAdmin,
+      verifyAgent,
       async (req, res) => {
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) };
@@ -573,9 +573,9 @@ async function run() {
       res.send(result);
     });
 
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     //   await client.close();
