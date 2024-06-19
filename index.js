@@ -408,8 +408,12 @@ async function run() {
       verifyToken,
       verifyAgent,
       async (req, res) => {
+        const email = req.params.email;
         const result = await soldPropertyCollection
           .aggregate([
+            {
+              $match: { agent_email: email } // Filter documents by buyer email
+            },
             {
               $group: {
                 _id: null,
